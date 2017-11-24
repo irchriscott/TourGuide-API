@@ -66,13 +66,13 @@ def api_register_tourist(request):
 				return return_response("Tourist Added !!!")
 
 			except Exception:
-				error = [{"Required Fields":"full_name, email", "Request":"POST", "Format":"json"}]
+				error = [{"Required Fields":"full_name, email", "Request":"POST Method", "Format":"json"}]
 				return return_response(json.dumps(error, indent=4, sort_keys=True))
 		else:
 			error = [{"Error":"Email Already Taken"}]
 			return return_response(json.dumps(error, indent=4, sort_keys=False))
 	else:
-		error = [{"Fields":"full_name, email", "Error":"Expecting POST REQUEST", "Format":"json"}]
+		error = [{"Fields":"full_name, email", "Error":"Expecting POST REQUEST Method", "Format":"json"}]
 		return return_response(json.dumps(error, indent=4, sort_keys=True))
 
 
@@ -92,10 +92,10 @@ def api_register_tourism(request):
 			tourism_obj.save()
 			return return_response("Tourism Added !!!")
 		except Exception:
-			error = [{"Required Fields":"email, origin, destination, is_private(boolean)", "Request":"POST", "Format":"json"}]
+			error = [{"Required Fields":"email, origin, destination, is_private(boolean)", "Request Method":"POST", "Format":"json"}]
 			return return_response(json.dumps(error, indent=4, sort_keys=True))
 	else:
-		error = [{"Fields":"email, origin, destination, is_private(boolean)", "Error":"Expecting POST REQUEST", "Format":"json"}]
+		error = [{"Fields":"email, origin, destination, is_private(boolean)", "Error":"Expecting POST REQUEST Method", "Format":"json"}]
 		return return_response(json.dumps(error, indent=4, sort_keys=True))
 
 
@@ -178,6 +178,26 @@ def api_sp_register(request):
 		return return_response(json.dumps(error, indent=4, sort_keys=True))
 
 
+@csrf_exempt
+def api_sp_login(request):
+	if request.method == "POST":
+		sp_data = json.loads(request.body)
+		try:
+			sp = ServiceProviders.objects.get(email=sp_data["email"])
+
+			if sp.password == sp_data["password"]:
+				return return_response(json.dumps(sp.get_sp_json()))
+			else:
+				error = [{"Error":"Invalid Email or Password"}]
+				return return_response(json.dumps(error, indent=4, sort_keys=False))
+		except ServiceProviders.DoesNotExist:
+			error = [{"Error":"Invalid Email or Password"}]
+			return return_response(json.dumps(error, indent=4, sort_keys=False))
+	else:
+		error = [{"Fields":"email, password", "Error":"Expecting POST REQUEST Method", "Format":"json"}]
+		return return_response(json.dumps(error, indent=4, sort_keys=True))
+
+
 def api_get_sp_all(request):
 	sps = ServiceProviders.objects.all()
 	sps = [sp.get_sp_json() for sp in sps]
@@ -199,9 +219,32 @@ def api_get_available_sp(request):
 	return return_response(json.dumps(sps), indent=4, sort_keys=False)
 
 
+@csrf_exempt
+def api_sp_update_availability(request):
+	if request.method == "POST":
+		data = json.loads(request.body)
+		sp = ServiceProviders.objects.get(pk=data["sp"])
+		sp.is_available = data["is_available"]
+		sp.save()
+	else:
+		error = [{"Fields":"sp, is_available", "Error":"Expecting POST REQUEST Method", "Format":"json"}]
+		return return_response(json.dumps(error, indent=4, sort_keys=True))
+
 def api_sp_add_place(request):
 	if request.method == "POST":
 		place = json.loads(request.body)
+		place_obj = Places(
+				sp = ServiceProviders.objects.get(pk=place["sp"]),
+				name = sp["name"],
+				longitude = sp["longitude"],
+				latitude = sp["latitude"]
+			)
+		try:
+			place_obj.save()
+			return return_response("Place Added !!!")
+		except Exception :
+			error = [{"Required Fields":"sp, name, longitude(optional), latitude(optional)", "Request Method":"POST", "Format":"json"}]
+			return return_response(json.dumps(error, indent=4, sort_keys=True))
 	else:
-		error = [{"Fields":"sp, name, longitude(optional), latitude(optional)", "Error":"Expecting POST REQUEST", "Format":"json"}]
+		error = [{"Fields":"sp, name, longitude(optional), latitude(optional)", "Error":"Expecting POST REQUEST Method", "Format":"json"}]
 		return return_response(json.dumps(error, indent=4, sort_keys=True))

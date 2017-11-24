@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
-from time import strftime
+from datetime import datetime
 
 # Create your models here.
 
@@ -257,7 +257,7 @@ class TourismGuidePlaces(models.Model):
 
 
 class TouristFeedBack(models.Model):
-	tourism_guide = models.ForeignKey(TourismGuide)
+	tourism_guide = models.ForeignKey(TourismGuide, null=True, blank=True)
 	text = models.TextField()
 	date = models.DateTimeField(auto_created=True)
 
