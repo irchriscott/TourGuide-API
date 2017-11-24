@@ -115,6 +115,7 @@ class ServiceProviders(models.Model):
 	image = models.ImageField(upload_to=set_sp_image_url, null=True, blank=True)
 
 	availables = ServiceProviderAvailabilityManager()
+	objects = ObjectManager()
 
 	def __unicode__(self):
 		return self.full_name
@@ -180,7 +181,9 @@ class Places(models.Model):
 	def get_place_json(self):
 		return {
 					"id": self.pk,
-					"name": self.name, 
+					"name": self.name,
+					"latitude": self.latitude,
+					"longitude": self.longitude,
 					"activities": [activity.get_activity_json() for activity in self.get_place_activities()]
 				}
 
